@@ -1,13 +1,34 @@
+import hashlib
+
 from rest_framework import serializers
 from .models import Owners
 
 
-class OwnerSerializer(serializers.Serializer):
-    hash_id = serializers.CharField(required=True, max_length=100)
+class OwnerSerializer(serializers.ModelSerializer):
     amount = serializers.DecimalField(required=True, max_digits=8, decimal_places=3)
+
+    class Meta:
+        model = Owners
+        fields = ('hash_id', 'amount', 'nonce',)
+        read_only_fields = ('hash_id', 'nonce')
+
+    def _generate_hash(self):
+        '''
+        funcion que devuelte el siguiente nonce,
+        el nonce es convertido a una cadena utf-8 y es hashiado como
+        hash_id
+        '''
+        if Owners.objects.last() is not None:
+            next_nonce = Owners.objects.last().nonce + 1
+        else:
+            next_nonce = 1
+        next_hash_id = hashlib.sha256(str(next_nonce).encode('utf-8')).hexdigest()
+        return next_hash_id, next_nonce
 
     def create(self, validated_data):
         """
-        Create and return a new `Owner` instance, given the validated data.
+        Create and return a new <Owner> instance, given the validated data.
+        el hash_id y nonce de <Owner> se genera con la funcion generate hash 
         """
-        return Vocabulario.objects.create(**validated_data)
+        validated_data['hash_id'], validated_data['nonce'] = self._generate_hash()
+        return Owners.objects.create(**validated_data)

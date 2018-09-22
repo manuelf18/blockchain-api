@@ -3,3 +3,6 @@ env
 
 #visual code variables
 .vscode
+
+# saved data
+db.sqlite3

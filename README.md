@@ -14,6 +14,8 @@ source env/bin/activate
 ```
 pip install django
 pip install djangorestframework
+pip install django-rest-swagger
 ```
 
-## Testing
+## Trying the API
+get the full list of allowed APIs with localhost:8000/docs

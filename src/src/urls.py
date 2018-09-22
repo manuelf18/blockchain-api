@@ -19,9 +19,15 @@ from django.urls import path, include
 from apps.blockchain.urls import router as blockchain_router
 from apps.owners.urls import router as owner_router
 
+from rest_framework_swagger.views import get_swagger_view
+
+
+schema_view = get_swagger_view(title='Swagger APIs')
+
 
 urlpatterns = [
     path('blockchain/', include((blockchain_router.urls, 'blockchain'))),
     path('owners/', include((owner_router.urls, 'owners'))),
+    path('docs/', schema_view),
     path('admin/', admin.site.urls),
 ]

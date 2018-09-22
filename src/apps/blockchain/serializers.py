@@ -14,8 +14,8 @@ class BlockSerializer(serializers.Serializer):
 
     def _generate_hash(self):
         next_nonce = Block.objects.last().nonce + 1
-        # TODO: Hash of all the trasaction plus the nonce.
-        return '', ''
+        next_hash_id = hash(next_nonce)
+        return next_hash_id, next_nonce
 
     def _get_transactions(self):
         # TODO: List the first 5 transactions with mined=False
