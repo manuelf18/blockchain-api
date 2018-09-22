@@ -18,6 +18,7 @@ class BlockViewSet(viewsets.ModelViewSet):
     serializer_class = BlockSerializer
 
     @action(methods=['post', ], url_path='create_block', url_name='create_block', detail=False)
+    # TODO: Check if there are 5 block with mined = False
     def create_block(self, request):
 
         return Response(serializer.data, status=status.HTTP_200_OK)

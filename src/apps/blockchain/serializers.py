@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from apps.blockchain.models import Block, Transaction
+from .models import Block, Transaction
+from ..owners.models import Owners
 
 
 class BlockSerializer(serializers.Serializer):
@@ -40,8 +41,12 @@ class TransactionSerializer(serializers.Serializer):
         model = Transaction
         fields = ('sender', 'sender', 'owner',)
 
+    def _validate_amount(amount, sender_fk):
+        # TODO get sender.amount and verify if its more than this.amount
+        pass
+
     def create(self, validated_data):
         """
-        Create and return a new `Owner` instance, given the validated data.
+        Create and return a new <Transaction> instance, given the validated data.
         """
         return Transaction.objects.create(**validated_data)
