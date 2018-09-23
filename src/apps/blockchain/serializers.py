@@ -50,27 +50,22 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ('sender', 'receiver', 'amount', 'mined',)
         read_only_fields = ('mined',)
 
-    def _validate_amount(self, amount_sent, sender_fk):
-        """
-        get <Owner>.amount and verify if its more than amount_sent
-        """
-        owner_amount = Owners.objects.get(hash_id=sender_fk).amount
-        if (owner_amount > amount_sent):
-            # TODO update sender (<Owner>)'s amount and receiver (<Owner>)'s amount, 
-            # ask Erick if its just a normal update on the <Block> Model
-            return True
-        else:
-            return False
+    def _update_amount(self, amount_sent, sender, receiver):
+        sender.amount -= amount_sent
+        receiver.amount += amount_sent
+        sender.save()
+        receiver.save()
 
     def create(self, validated_data):
         """
         Create and return a new <Transaction> instance, given the validated data.
         """
-        sender_fk = validated_data['sender']
+        validated_data['sender'] = Owners.objects.get(hash_id=validated_data['sender'])
+        sender_amount = validated_data['sender'].amount
         amount_sent = validated_data['amount']
-        if (self._validate_amount(amount_sent, sender_fk)) is True:
-            validated_data['sender'] = Owners.objects.get(hash_id=sender_fk)
+        if sender_amount > amount_sent:
             validated_data['receiver'] = Owners.objects.get(hash_id=validated_data['receiver'])
+            self._update_amount(amount_sent, validated_data['sender'], validated_data['receiver'])
             return Transaction.objects.create(**validated_data)
         else:
             error = {'message': 'amount not enough in Sender'}
