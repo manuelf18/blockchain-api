@@ -28,12 +28,11 @@ class Transaction(models.Model):
     receiver = models.ForeignKey(Owners, null=True, blank=True,
                                  on_delete=models.SET_NULL,
                                  verbose_name="Receptor", related_name="owner_receiver")
+    block = models.ForeignKey(Block, null=True, blank=True,
+                                 on_delete=models.SET_NULL,
+                                 verbose_name="Receptor", related_name="transactions") 
     amount = models.DecimalField(max_digits=8, decimal_places=3, verbose_name='cantidad')
     mined = models.BooleanField(verbose_name='minado', default=False)
 
-    @property
-    def calculate_valid(self, sender_amount,   transaction):
-        if(sender_amount < transaction):
-            return True
-        else:
-            return False
+    def __unicode__(self):
+        return '%d:' % (self.id)

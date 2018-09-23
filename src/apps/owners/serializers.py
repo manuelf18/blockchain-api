@@ -10,7 +10,7 @@ class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owners
         fields = ('hash_id', 'amount', 'nonce',)
-        read_only_fields = ('hash_id', 'nonce')
+        read_only_fields = ('hash_id', 'nonce',)
 
     def _generate_hash(self):
         '''

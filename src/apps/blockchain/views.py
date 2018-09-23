@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 
-
 from .models import Block, Transaction
 from .serializers import BlockSerializer, TransactionSerializer
 
@@ -16,12 +15,6 @@ from .serializers import BlockSerializer, TransactionSerializer
 class BlockViewSet(viewsets.ModelViewSet):
     queryset = Block.objects.all()
     serializer_class = BlockSerializer
-
-    @action(methods=['post', ], url_path='create_block', url_name='create_block', detail=False)
-    # TODO: Check if there are 5 block with mined = False
-    def create_block(self, request):
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TransactionViewSet(viewsets.ModelViewSet):

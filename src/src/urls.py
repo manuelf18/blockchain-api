@@ -16,7 +16,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-from apps.blockchain.urls import router as blockchain_router
+from apps.blockchain.urls import router_block as blockchain_router_block
+from apps.blockchain.urls import router_transaction as blockchain_router_transaction
 from apps.owners.urls import router as owner_router
 
 from rest_framework_swagger.views import get_swagger_view
@@ -26,8 +27,9 @@ schema_view = get_swagger_view(title='Swagger APIs')
 
 
 urlpatterns = [
-    path('blockchain/', include((blockchain_router.urls, 'blockchain'))),
+    path('blockchain/', include((blockchain_router_block.urls, 'blockchain'))),
     path('owners/', include((owner_router.urls, 'owners'))),
+    path('transaction/', include((blockchain_router_transaction.urls, 'transactions'))),
     path('docs/', schema_view),
     path('admin/', admin.site.urls),
 ]

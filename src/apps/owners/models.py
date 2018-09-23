@@ -6,6 +6,9 @@ class Owners(models.Model):
     nonce = models.IntegerField(verbose_name='cantidad', blank=True, default=0)
     amount = models.DecimalField(max_digits=8, decimal_places=3)
 
+    def __str__(self):
+        return self.hash_id
+
     @property
     def refresh_amount():
         pass
