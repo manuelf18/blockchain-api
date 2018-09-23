@@ -43,12 +43,11 @@ class BlockSerializer(serializers.ModelSerializer):
 class TransactionSerializer(serializers.ModelSerializer):
     sender = serializers.CharField(max_length=100)
     receiver = serializers.CharField(max_length=100)
-    block = serializers.RelatedField(source='block.hash_id', read_only=True)
     amount = serializers.DecimalField(max_digits=8, decimal_places=3)
 
     class Meta:
         model = Transaction
-        fields = ('sender', 'receiver', 'amount', 'block', 'mined',)
+        fields = ('sender', 'receiver', 'amount', 'mined',)
         read_only_fields = ('mined',)
 
     def _validate_amount(self, amount_sent, sender_fk):
