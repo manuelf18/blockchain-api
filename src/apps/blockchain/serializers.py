@@ -1,6 +1,8 @@
 from django.db.models import Count
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+
 from .models import Block, Transaction
 from ..owners.models import Owners
 
@@ -50,6 +52,13 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = ('sender', 'receiver', 'amount', 'mined',)
         read_only_fields = ('mined',)
 
+    def _validate_owner(self, id):
+        try:
+            data = Owners.objects.get(hash_id=id)
+        except Exception as e:
+            raise serializers.ValidationError({'message': 'no Owner of id'})
+        return data
+
     def _update_amount(self, amount_sent, sender, receiver):
         sender.amount -= amount_sent
         receiver.amount += amount_sent
@@ -60,12 +69,25 @@ class TransactionSerializer(serializers.ModelSerializer):
         """
         Create and return a new <Transaction> instance, given the validated data.
         """
-        validated_data['sender'] = Owners.objects.get(hash_id=validated_data['sender'])
+
+        # Validate that the two accounts are not the same
+        if(validated_data['sender'] == validated_data['receiver']):
+            raise serializers.ValidationError({'message': 'cant send to yourself'})
+
+        # Validate that sender exits
+        validated_data['sender'] = self._validate_owner(validated_data['sender'])
+
         sender_amount = validated_data['sender'].amount
         amount_sent = validated_data['amount']
+        # Validate that sender has enough amount to create the transaction
         if sender_amount > amount_sent:
-            validated_data['receiver'] = Owners.objects.get(hash_id=validated_data['receiver'])
+            # Validate that receiver exists
+            validated_data['receiver'] = self._validate_owner(validated_data['receiver'])
+
+            # Update the amounts of both sender and receiver
             self._update_amount(amount_sent, validated_data['sender'], validated_data['receiver'])
+
+            # Create the transaction
             return Transaction.objects.create(**validated_data)
         else:
             error = {'message': 'amount not enough in Sender'}
