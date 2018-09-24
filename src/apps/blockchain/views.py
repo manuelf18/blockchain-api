@@ -13,7 +13,7 @@ from .serializers import BlockSerializer, TransactionSerializer
 
 
 class BlockViewSet(viewsets.ModelViewSet):
-    queryset = Block.objects.all()
+    queryset = Block.objects.all().order_by('-timestamp')
     serializer_class = BlockSerializer
 
 

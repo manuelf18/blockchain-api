@@ -30,6 +30,6 @@ urlpatterns = [
     path('blockchain/', include((blockchain_router_block.urls, 'blockchain'))),
     path('owners/', include((owner_router.urls, 'owners'))),
     path('transaction/', include((blockchain_router_transaction.urls, 'transactions'))),
-    path('docs/', schema_view),
+    path('', schema_view),
     path('admin/', admin.site.urls),
 ]

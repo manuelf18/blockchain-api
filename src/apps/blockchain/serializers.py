@@ -1,4 +1,6 @@
-from django.db.models import Count
+import hashlib
+import datetime
+import random
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -8,37 +10,56 @@ from ..owners.models import Owners
 
 
 class BlockSerializer(serializers.ModelSerializer):
-    transactions = serializers.StringRelatedField(many=True)
+    transactions = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Block
         fields = ('prev_hash_id', 'hash_id', 'transactions', 'timestamp', 'nonce',)
-
-    def _get_prev_hash(self):
-        # Gets the hash of the previous trancsactions or NONE is there isn't one
-        return Block.objects.last().hash_id
+        read_only_fields = ('prev_hash_id', 'hash_id', 'transactions', 'timestamp', 'nonce',)
 
     def _generate_hash(self):
-        next_nonce = Block.objects.last().nonce + 1
-        next_hash_id = hash(next_nonce)
-        return next_hash_id, next_nonce
+        nonce = 1
+        hash_id = hashlib.sha256(str(datetime.datetime.now()).encode('utf-8') + str(nonce).encode('utf-8') +
+                                 str(random.randint(1, 100)).encode()).hexdigest()
+        if Block.objects.last() is not None:
+            prev_hash_id = Block.objects.last().hash_id
+        else: 
+            prev_hash_id = None
+        while(hash_id[:4] != "0000"):
+            nonce += 1
+            hash_id = hashlib.sha256(str(datetime.datetime.now()).encode('utf-8') + str(nonce).encode('utf-8') +
+                                     str(random.randint(1, 100)).encode()).hexdigest()
+        return hash_id, nonce, prev_hash_id
+
+    def _validate_mined(self, trans):
+        if trans.count() == 5:
+            return True, trans.values_list('id', flat=True), {"message": "Success."}
+        elif trans.count() > 5:
+            trans = trans.values_list('id', flat=True)[:5]
+            return True, trans, {"message": "Success Sliced."}
+        else:
+            return False, trans.values_list('id', flat=True), {"message": "Not enough Transactions."}
 
     def _get_transactions(self):
         # TODO: List the first 5 transactions with mined=False
-        transactions = Transaction.objects.filter(mined=False).annotate(count=Count('amount'))
-        return transactions, transactions['count']
+        return self._validate_mined(Transaction.objects.filter(mined=False).order_by('timestamp'))
 
-    def create(self, validated_data):
+    def create(self, data):
         """
         Create and return a new <Transaction> instance, given the validated data.
         """
-        validated_data['transactions'], counter = self._get_transactions()
-        if validated_data['transactions'] is not None and counter >= 5:
-            validated_data['prev_hash_id'] = self._get_prev_hash()
-            validated_data['hash_id'], validated_data['nonce'] = self._generate_hash()
-            return Block.objects.create(**validated_data)
+        data = {}
+        flag, trans_ids, error = self._get_transactions()
+        if flag is True:
+            data['hash_id'], data['nonce'], data['prev_hash_id'] = self._generate_hash()
+            trans = Transaction.objects.filter(id__in=trans_ids).order_by('timestamp')
+            for t in trans:
+                t.mined = True
+                t.save(update_fields=['mined', ])
+            created = Block.objects.create(**data)
+            created.transactions.set(trans)
+            return created
         else:
-            error = {'message': 'Not enough transactions'}
             raise serializers.ValidationError(error)
 
 
@@ -49,8 +70,8 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Transaction
-        fields = ('sender', 'receiver', 'amount', 'mined',)
-        read_only_fields = ('mined',)
+        fields = ('sender', 'receiver', 'amount', 'mined', 'timestamp',)
+        read_only_fields = ('mined', 'timestamp',)
 
     def _validate_owner(self, id):
         try:

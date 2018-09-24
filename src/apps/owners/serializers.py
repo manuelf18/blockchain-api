@@ -1,4 +1,6 @@
 import hashlib
+import datetime
+import random
 
 from rest_framework import serializers
 from .models import Owners
@@ -13,17 +15,14 @@ class OwnerSerializer(serializers.ModelSerializer):
         read_only_fields = ('hash_id', 'nonce',)
 
     def _generate_hash(self):
-        '''
-        funcion que devuelte el siguiente nonce,
-        el nonce es convertido a una cadena utf-8 y es hashiado como
-        hash_id
-        '''
-        if Owners.objects.last() is not None:
-            next_nonce = Owners.objects.last().nonce + 1
-        else:
-            next_nonce = 1
-        next_hash_id = hashlib.sha256(str(next_nonce).encode('utf-8')).hexdigest()
-        return next_hash_id, next_nonce
+        nonce = 1
+        hash_id = hashlib.sha256(str(datetime.datetime.now()).encode('utf-8') + str(nonce).encode('utf-8') +
+                                 str(random.randint(1, 100)).encode()).hexdigest()
+        while(hash_id[:4] != "0000"):
+            nonce += 1
+            hash_id = hashlib.sha256(str(datetime.datetime.now()).encode('utf-8') + str(nonce).encode('utf-8') +
+                                     str(random.randint(1, 100)).encode()).hexdigest()
+        return hash_id, nonce
 
     def create(self, validated_data):
         """
