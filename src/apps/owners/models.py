@@ -8,4 +8,3 @@ class Owners(models.Model):
 
     def __str__(self):
         return self.hash_id
-

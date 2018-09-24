@@ -13,10 +13,41 @@ from .serializers import BlockSerializer, TransactionSerializer
 
 
 class BlockViewSet(viewsets.ModelViewSet):
+    """
+    retrieve:
+    Return the given [Transaction].
+
+    list:
+    Return a list of all the existing [Block].
+
+    create:
+    Creates a new [Block] takes no parameters:
+        Notes:
+            - There has to be at least 5 mined=False transactions in order to proceed.
+    """
     queryset = Block.objects.all().order_by('-timestamp')
     serializer_class = BlockSerializer
 
 
 class TransactionViewSet(viewsets.ModelViewSet):
+    """
+    retrieve:
+    Return the given [Transaction].
+
+    list:
+    Return a list of all the existing [Transaction].
+
+    create:
+    Creates a new [Transaction] with parameters:
+        {
+            "sender" = Owner hash 1 (as String)
+            "receiver" = Owner hash 2 (as String)
+            "amount" = (as Integer)
+        }
+        Notes:
+            -sender and receiver have to be different
+            -sender should have enough amount to proceed with the transaction
+            -amount has to be larger that 0.00
+    """
     queryset = Transaction.objects.all()
     serializer_class = TransactionSerializer

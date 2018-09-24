@@ -23,7 +23,7 @@ class BlockSerializer(serializers.ModelSerializer):
                                  str(random.randint(1, 100)).encode()).hexdigest()
         if Block.objects.last() is not None:
             prev_hash_id = Block.objects.last().hash_id
-        else: 
+        else:
             prev_hash_id = None
         while(hash_id[:4] != "0000"):
             nonce += 1
@@ -46,7 +46,7 @@ class BlockSerializer(serializers.ModelSerializer):
 
     def create(self, data):
         """
-        Create and return a new <Transaction> instance, given the validated data.
+        Create and return a new [Block] instance, given the validated data.
         """
         data = {}
         flag, trans_ids, error = self._get_transactions()
@@ -88,8 +88,12 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        Create and return a new <Transaction> instance, given the validated data.
+        Create and return a new [Transaction] instance, given the validated data.
         """
+
+        # Validate that amount is larger than 0
+        if(validated_data['amount'] <= 0.000):
+            raise serializers.ValidationError({'message': 'amount has to be larger than 0.000'})
 
         # Validate that the two accounts are not the same
         if(validated_data['sender'] == validated_data['receiver']):

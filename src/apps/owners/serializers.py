@@ -26,8 +26,11 @@ class OwnerSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         """
-        Create and return a new <Owner> instance, given the validated data.
-        el hash_id y nonce de <Owner> se genera con la funcion generate hash 
+        Create and return a new [Owner] instance, given the validated data.
         """
+        # Validate that amount is larger than 0
+        if(validated_data['amount'] <= 0.000):
+            raise serializers.ValidationError({'message': 'amount has to be larger than 0.000'})
+
         validated_data['hash_id'], validated_data['nonce'] = self._generate_hash()
         return Owners.objects.create(**validated_data)

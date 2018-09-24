@@ -14,8 +14,19 @@ from .serializers import OwnerSerializer
 
 class OwnerViewSet(viewsets.ModelViewSet):
     """
-    GET /owners returns queryset
-    POST /owners creates new Owner
+    retrieve:
+    Return the given [Owner].
+
+    list:
+    Return a list of all the existing [Owner].
+
+    create:
+    Creates a new [Owner] with parameters:
+        {
+            "amount" = (as Integer)
+        }
+        Notes:
+            -amount has to be larger that 0.00
     """
     queryset = Owners.objects.all()
     serializer_class = OwnerSerializer
