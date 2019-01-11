@@ -6,3 +6,9 @@ env
 
 # saved data
 db.sqlite3
+
+# cache
+__pycache__
+
+# Mac Saves
+.DS_STORE
